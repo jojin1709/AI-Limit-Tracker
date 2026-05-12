@@ -1,6 +1,7 @@
 # 📊 AI Limit Tracker
 
 [![Download Extension](https://img.shields.io/badge/Download-Extension_ZIP-blue?style=for-the-badge&logo=github)](https://github.com/jojin1709/AI-Limit-Tracker/archive/refs/heads/main.zip)
+[![Firefox Add-on](https://img.shields.io/badge/Firefox-Add--on-orange?style=for-the-badge&logo=firefox-browser)](https://addons.mozilla.org/en-US/firefox/addon/ai-limit-tracker/)
 
 ![AI Limit Tracker Logo](ai-limit-tracker/icons/icon128.png)
 
