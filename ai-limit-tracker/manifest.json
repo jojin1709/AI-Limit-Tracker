@@ -23,8 +23,19 @@
     "default_title": "AI Limit Tracker",
     "default_icon": "icons/icon128.png"
   },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "ai-limit-tracker@jojin.local",
+      "strict_min_version": "109.0",
+      "data_collection_permissions": false
+    },
+    "gecko_android": {
+      "id": "ai-limit-tracker@jojin.local"
+    }
+  },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "scripts": ["background.js"]
   },
   "content_scripts": [
     {

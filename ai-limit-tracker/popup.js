@@ -191,11 +191,7 @@ function renderCards() {
 
     card.appendChild(top);
     card.appendChild(track);
-    card.appendChild(meta);
-    card.appendChild(footer);
-    container.appendChild(card);
   });
-}
 
   container.querySelectorAll(".log-btn").forEach(btn => {
     btn.addEventListener("click", () => {
