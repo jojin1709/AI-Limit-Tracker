@@ -1,5 +1,7 @@
 # 📊 AI Limit Tracker
 
+[![Download Extension](https://img.shields.io/badge/Download-Extension_ZIP-blue?style=for-the-badge&logo=github)](https://github.com/jojin1709/AI-Limit-Tracker/archive/refs/heads/main.zip)
+
 ![AI Limit Tracker Logo](ai-limit-tracker/icons/icon128.png)
 
 **A premium, high-performance Chrome Extension to monitor and manage your AI message limits in real-time.** 
