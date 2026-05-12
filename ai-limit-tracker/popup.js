@@ -49,59 +49,153 @@ function renderSummary() {
   const total = allAIs.length;
   const avgP = allAIs.length ? Math.round(allAIs.reduce((s, a) => s + pct(a.used, a.limit), 0) / total) : 0;
   const critical = allAIs.filter(a => pct(a.used, a.limit) >= 95).length;
-  const warn = allAIs.filter(a => { const p = pct(a.used, a.limit); return p >= 80 && p < 95; }).length;
   const healthy = allAIs.filter(a => pct(a.used, a.limit) < 80).length;
-  summaryEl.innerHTML = `
-    <div class="sum-cell"><div class="sum-label">Platforms</div><div class="sum-val">${total}</div></div>
-    <div class="sum-cell"><div class="sum-label">Avg usage</div><div class="sum-val ${statusClass(avgP)}">${avgP}%</div></div>
-    <div class="sum-cell"><div class="sum-label">Critical</div><div class="sum-val ${critical > 0 ? "danger" : "ok"}">${critical}</div></div>
-    <div class="sum-cell"><div class="sum-label">Healthy</div><div class="sum-val ok">${healthy}</div></div>
-  `;
+
+  summaryEl.textContent = '';
+  
+  const cells = [
+    { label: 'Platforms', val: total, cls: '' },
+    { label: 'Avg usage', val: `${avgP}%`, cls: statusClass(avgP) },
+    { label: 'Critical', val: critical, cls: critical > 0 ? "danger" : "ok" },
+    { label: 'Healthy', val: healthy, cls: 'ok' }
+  ];
+
+  cells.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'sum-cell';
+    const lbl = document.createElement('div');
+    lbl.className = 'sum-label';
+    lbl.textContent = c.label;
+    const val = document.createElement('div');
+    val.className = 'sum-val ' + c.cls;
+    val.textContent = c.val;
+    div.appendChild(lbl);
+    div.appendChild(val);
+    summaryEl.appendChild(div);
+  });
 }
 
 function renderCards() {
   const list = filteredAIs();
   const container = document.getElementById("cards");
   if (!container) return;
+  
+  container.textContent = '';
+  
   if (!list.length) {
-    container.innerHTML = `<div class="empty">No platforms match this filter.</div>`;
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.textContent = 'No platforms match this filter.';
+    container.appendChild(empty);
     return;
   }
-  container.innerHTML = list.map(ai => {
+
+  list.forEach(ai => {
     const idx = allAIs.indexOf(ai);
     const p = pct(ai.used, ai.limit);
     const sc = statusClass(p);
     const left = ai.limit === 999 ? "∞" : ai.limit - ai.used;
-    return `<div class="card ${sc}-card">
-      <div class="card-top">
-        <div class="ai-row">
-          <div class="logo-pill" style="background:${ai.logoBg};color:${ai.logoTxt}">${ai.name.slice(0,1)}</div>
-          <div>
-            <div class="ai-name">${ai.name}</div>
-            <div class="ai-sub">${ai.company} · ${ai.plan}</div>
-          </div>
-        </div>
-        <div class="card-right">
-          <div class="pct ${sc}">${ai.limit === 999 ? "∞" : p + "%"}</div>
-        </div>
-      </div>
-      <div class="bar-track"><div class="bar-fill" style="width:${ai.limit === 999 ? 5 : p}%;background:${barColor(p)}"></div></div>
-      <div class="meta">
-        <div class="chip"><div class="chip-label">Used</div><div class="chip-val">${ai.used}</div></div>
-        <div class="chip"><div class="chip-label">Left</div><div class="chip-val">${left}</div></div>
-        <div class="chip"><div class="chip-label">Limit</div><div class="chip-val">${ai.limit === 999 ? "∞" : ai.limit}</div></div>
-        <div class="chip"><div class="chip-label">Reset</div><div class="chip-val" style="font-size:10px">${fmtReset(ai.resetIn, ai.window)}</div></div>
-      </div>
-      <div class="reset-row">
-        <span>Window: ${ai.window}</span>
-        <span>
-          <button class="log-btn" data-idx="${idx}">+ log msg</button>
-          &nbsp;
-          <button class="edit-btn-sm" data-edit="${idx}">✎ edit</button>
-        </span>
-      </div>
-    </div>`;
-  }).join("");
+
+    const card = document.createElement('div');
+    card.className = `card ${sc}-card`;
+
+    // Card Top
+    const top = document.createElement('div');
+    top.className = 'card-top';
+    
+    const aiRow = document.createElement('div');
+    aiRow.className = 'ai-row';
+    const pill = document.createElement('div');
+    pill.className = 'logo-pill';
+    pill.style.background = ai.logoBg;
+    pill.style.color = ai.logoTxt;
+    pill.textContent = ai.name.slice(0, 1);
+    
+    const nameCol = document.createElement('div');
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'ai-name';
+    nameDiv.textContent = ai.name;
+    const subDiv = document.createElement('div');
+    subDiv.className = 'ai-sub';
+    subDiv.textContent = `${ai.company} · ${ai.plan}`;
+    nameCol.appendChild(nameDiv);
+    nameCol.appendChild(subDiv);
+    
+    aiRow.appendChild(pill);
+    aiRow.appendChild(nameCol);
+    
+    const cRight = document.createElement('div');
+    cRight.className = 'card-right';
+    const pctDiv = document.createElement('div');
+    pctDiv.className = `pct ${sc}`;
+    pctDiv.textContent = ai.limit === 999 ? "∞" : p + "%";
+    cRight.appendChild(pctDiv);
+    
+    top.appendChild(aiRow);
+    top.appendChild(cRight);
+
+    // Bar
+    const track = document.createElement('div');
+    track.className = 'bar-track';
+    const fill = document.createElement('div');
+    fill.className = 'bar-fill';
+    fill.style.width = `${ai.limit === 999 ? 5 : p}%`;
+    fill.style.background = barColor(p);
+    track.appendChild(fill);
+
+    // Meta chips
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    [
+      { l: 'Used', v: ai.used },
+      { l: 'Left', v: left },
+      { l: 'Limit', v: ai.limit === 999 ? "∞" : ai.limit },
+      { l: 'Reset', v: fmtReset(ai.resetIn, ai.window) }
+    ].forEach(m => {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      const cl = document.createElement('div');
+      cl.className = 'chip-label';
+      cl.textContent = m.l;
+      const cv = document.createElement('div');
+      cv.className = 'chip-val';
+      cv.textContent = m.v;
+      chip.appendChild(cl);
+      chip.appendChild(cv);
+      meta.appendChild(chip);
+    });
+
+    // Footer
+    const footer = document.createElement('div');
+    footer.className = 'reset-row';
+    const winSpan = document.createElement('span');
+    winSpan.textContent = `Window: ${ai.window}`;
+    const btnSpan = document.createElement('span');
+    
+    const logBtn = document.createElement('button');
+    logBtn.className = 'log-btn';
+    logBtn.dataset.idx = idx;
+    logBtn.textContent = '+ log msg';
+    
+    const editBtn = document.createElement('button');
+    editBtn.className = 'edit-btn-sm';
+    editBtn.dataset.edit = idx;
+    editBtn.textContent = '✎ edit';
+    
+    btnSpan.appendChild(logBtn);
+    btnSpan.appendChild(document.createTextNode(' '));
+    btnSpan.appendChild(editBtn);
+    
+    footer.appendChild(winSpan);
+    footer.appendChild(btnSpan);
+
+    card.appendChild(top);
+    card.appendChild(track);
+    card.appendChild(meta);
+    card.appendChild(footer);
+    container.appendChild(card);
+  });
+}
 
   container.querySelectorAll(".log-btn").forEach(btn => {
     btn.addEventListener("click", () => {
