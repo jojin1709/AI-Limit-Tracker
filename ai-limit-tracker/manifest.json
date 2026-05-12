@@ -27,7 +27,8 @@
     "gecko": {
       "id": "ai-limit-tracker@jojin.local",
       "data_collection_permissions": {
-        "required": false
+        "required": [],
+        "optional": []
       }
     }
   },
