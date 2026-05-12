@@ -1,0 +1,14 @@
+# Chrome Extension files
+*.crx
+*.pem
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Workspace
+.gemini/
+.vscode/
+node_modules/
+dist/
+build/

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Limit Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f172a;
+  --card-bg: rgba(30, 41, 59, 0.7);
+  --text: #f8fafc;
+  --text-dim: #94a3b8;
+  --primary: #38bdf8;
+  --accent: #10b981;
+  --danger: #ef4444;
+  --warn: #f59e0b;
+  --border: rgba(255, 255, 255, 0.1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);width:380px;min-height:200px;font-size:13px;overflow-x:hidden}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px;background:rgba(15, 23, 42, 0.8);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.logo{display:flex;align-items:center;gap:12px;font-weight:700;font-size:16px;letter-spacing:-0.01em;color:var(--text)}
+.brand-icon{width:22px;height:22px;background:var(--primary);border-radius:6px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;box-shadow:0 2px 8px rgba(56, 189, 248, 0.3)}
+.brand-icon::after{content:'';width:10px;height:2px;background:#fff;border-radius:1px;position:absolute;bottom:6px}
+.brand-icon::before{content:'';width:4px;height:8px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg);margin-top:-4px}
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+.topbar-actions{display:flex;gap:8px}
+.icon-btn{background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:11px;color:var(--text);display:flex;align-items:center;gap:4px;transition:all 0.2s}
+.icon-btn:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);transform:translateY(-1px)}
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
+.sum-cell{padding:12px 8px;text-align:center;background:var(--bg)}
+.sum-label{font-size:9px;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;font-weight:600}
+.sum-val{font-size:16px;font-weight:700}
+.sum-val.ok{color:var(--accent)}.sum-val.warn{color:var(--warn)}.sum-val.danger{color:var(--danger)}
+.filter-bar{display:flex;gap:6px;padding:12px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--border)}
+.filter-bar::-webkit-scrollbar { display: none; }
+.fbtn{font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:rgba(255,255,255,0.03);color:var(--text-dim);cursor:pointer;white-space:nowrap;transition:all 0.2s}
+.fbtn:hover{background:rgba(255,255,255,0.08)}
+.fbtn.active{background:var(--primary);color:var(--bg);border-color:var(--primary);font-weight:600}
+.cards{max-height:420px;overflow-y:auto;padding:12px}
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;transition:all 0.2s;position:relative;overflow:hidden}
+.card:hover{border-color:rgba(255,255,255,0.2);transform:translateY(-2px);box-shadow:0 10px 20px rgba(0,0,0,0.2)}
+.card.warn-card{border-left:4px solid var(--warn)}
+.card.danger-card{border-left:4px solid var(--danger)}
+.card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.ai-row{display:flex;align-items:center;gap:12px}
+.logo-pill{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,0.3)}
+.ai-name{font-weight:600;font-size:14px;color:var(--text)}
+.ai-sub{font-size:11px;color:var(--text-dim)}
+.pct{font-size:18px;font-weight:800;letter-spacing:-0.02em}
+.pct.ok{color:var(--accent)}.pct.warn{color:var(--warn)}.pct.danger{color:var(--danger)}
+.bar-track{height:6px;background:rgba(255,255,255,0.05);border-radius:10px;overflow:hidden;margin-bottom:14px}
+.bar-fill{height:100%;border-radius:10px;transition:width(0.8s cubic-bezier(0.4, 0, 0.2, 1));background:linear-gradient(90deg, var(--primary), #818cf8)}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.chip{background:rgba(255,255,255,0.03);border-radius:8px;padding:6px 4px;text-align:center;border:1px solid rgba(255,255,255,0.02)}
+.chip-label{font-size:8px;color:var(--text-dim);margin-bottom:2px;text-transform:uppercase;font-weight:600}
+.chip-val{font-size:12px;font-weight:600;color:var(--text)}
+.reset-row{display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--text-dim);border-top:1px solid var(--border);padding-top:10px}
+.log-btn{background:rgba(56, 189, 248, 0.1);border:1px solid rgba(56, 189, 248, 0.2);border-radius:6px;cursor:pointer;font-size:10px;color:var(--primary);padding:3px 8px;font-weight:600;transition:all 0.2s}
+.log-btn:hover{background:var(--primary);color:var(--bg)}
+.edit-btn-sm{background:none;border:none;cursor:pointer;font-size:11px;color:var(--text-dim);transition:color 0.2s}
+.edit-btn-sm:hover{color:var(--text)}
+.footer{padding:12px;background:rgba(15, 23, 42, 0.8);backdrop-filter:blur(10px);border-top:1px solid var(--border);display:flex;gap:10px}
+.btn-primary{flex:1;background:var(--primary);color:var(--bg);border:none;border-radius:10px;padding:10px;font-size:12px;cursor:pointer;font-weight:700;transition:all 0.2s}
+.btn-primary:hover{filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 4px 12px rgba(56, 189, 248, 0.3)}
+.btn-secondary{flex:1;background:rgba(255,255,255,0.05);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px;font-size:12px;cursor:pointer;transition:all 0.2s}
+.btn-secondary:hover{background:rgba(255,255,255,0.1);transform:translateY(-1px)}
+.edit-panel{display:none;padding:20px;border-top:1px solid var(--border);background:var(--bg);position:absolute;bottom:0;left:0;right:0;z-index:20;box-shadow:0 -20px 40px rgba(0,0,0,0.4)}
+.edit-panel.open{display:block;animation:slideUp 0.3s ease-out}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.ep-title{font-size:14px;font-weight:700;margin-bottom:16px;color:var(--text)}
+.field{margin-bottom:12px}
+.field label{font-size:10px;color:var(--text-dim);display:block;margin-bottom:5px;font-weight:600;text-transform:uppercase}
+.field input,.field select{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:12px;background:rgba(255,255,255,0.05);color:var(--text);outline:none;transition:all 0.2s}
+.field input:focus,.field select:focus{border-color:var(--primary);background:rgba(255,255,255,0.08)}
+.ep-actions{display:flex;gap:8px;margin-top:20px}
+.empty{padding:40px 20px;text-align:center;color:var(--text-dim);font-size:13px}
+.watermark{text-align:center;padding:12px;font-size:10px;color:var(--text-dim);opacity:0.5;letter-spacing:0.05em;text-transform:uppercase;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo"><div class="brand-icon"></div> AI Limit Tracker</div>
+  <div class="topbar-actions">
+    <button class="icon-btn" id="refresh-btn">↻ Refresh</button>
+    <button class="icon-btn" id="reset-all-btn">Reset all</button>
+  </div>
+</div>
+
+<div class="summary" id="summary"></div>
+
+<div class="filter-bar" id="filter-bar">
+  <button class="fbtn active" data-filter="all">All</button>
+  <button class="fbtn" data-filter="danger">Critical</button>
+  <button class="fbtn" data-filter="warn">Warning</button>
+  <button class="fbtn" data-filter="ok">Healthy</button>
+  <button class="fbtn" data-filter="free">Free</button>
+  <button class="fbtn" data-filter="paid">Paid</button>
+</div>
+
+<div class="cards" id="cards"></div>
+
+<div class="edit-panel" id="edit-panel">
+  <div class="ep-title" id="ep-title">Edit</div>
+  <div class="field"><label>Plan</label><input type="text" id="ep-plan"></div>
+  <div class="field"><label>Limit (messages per window)</label><input type="number" id="ep-limit" min="1"></div>
+  <div class="field"><label>Used so far</label><input type="number" id="ep-used" min="0"></div>
+  <div class="field"><label>Reset window</label>
+    <select id="ep-window">
+      <option>1 hour</option><option>2 hours</option><option>3 hours</option>
+      <option>5 hours</option><option>8 hours</option><option>24 hours</option>
+      <option>7 days</option><option>30 days</option><option>Unlimited</option>
+    </select>
+  </div>
+  <div class="ep-actions">
+    <button class="btn-secondary" id="ep-cancel">Cancel</button>
+    <button class="btn-primary" id="ep-save">Save</button>
+  </div>
+</div>
+
+<div class="footer">
+  <button class="btn-primary" id="open-full-btn">Open full dashboard</button>
+  <button class="btn-secondary" id="export-btn">Export JSON</button>
+</div>
+
+<div class="watermark">Made with ❤️ by Jojin</div>
+<script src="popup.js"></script>
+</body>
+</html>
