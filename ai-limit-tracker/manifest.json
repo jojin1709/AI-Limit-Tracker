@@ -26,8 +26,9 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "ai-limit-tracker@jojin.local",
-      "strict_min_version": "113.0",
-      "data_collection_permissions": {}
+      "data_collection_permissions": {
+        "required": false
+      }
     }
   },
   "background": {
