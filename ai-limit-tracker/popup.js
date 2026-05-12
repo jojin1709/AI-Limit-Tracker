@@ -216,17 +216,44 @@ function setupListeners() {
     }
   }
 
-  const exportBtn = document.getElementById("export-btn");
-  if (exportBtn) {
-    exportBtn.addEventListener("click", () => {
-      const data = JSON.stringify(allAIs.map(a => ({
-        platform: a.name, plan: a.plan, used: a.used, limit: a.limit,
-        pct: pct(a.used, a.limit) + "%", resetsIn: fmtReset(a.resetIn, a.window), window: a.window
-      })), null, 2);
-      const blob = new Blob([data], { type: "application/json" });
+  if (document.getElementById("export-btn")) {
+    document.getElementById("export-btn").addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(allAIs, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url; link.download = "ai-limits.json"; link.click();
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ai-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+    });
+  }
+
+  if (document.getElementById("import-btn")) {
+    document.getElementById("import-btn").addEventListener("click", () => {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".json";
+      input.onchange = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const data = JSON.parse(event.target.result);
+            if (Array.isArray(data) && data.length > 0 && data[0].name) {
+              allAIs = data;
+              chrome.storage.local.set({ ais: allAIs }, () => {
+                alert("Data imported successfully!");
+                render();
+              });
+            } else {
+              throw new Error("Invalid format");
+            }
+          } catch (err) {
+            alert("Error: Invalid backup file.");
+          }
+        };
+        reader.readAsText(file);
+      };
+      input.click();
     });
   }
 
