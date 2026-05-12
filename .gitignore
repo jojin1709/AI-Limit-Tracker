@@ -1,6 +1,7 @@
 # Chrome Extension files
 *.crx
 *.pem
+*.zip
 
 # OS files
 .DS_Store
